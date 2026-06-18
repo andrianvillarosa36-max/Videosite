@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chat</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+      background: #0D1117;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* NAVBAR */
+    .top-bar {
+      background: #0D1117;
+      border-bottom: 1px solid #30363D;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .top-bar .logo {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #00D4FF;
+    }
+
+    .top-bar a {
+      color: #00D4FF;
+      font-size: 0.8rem;
+      text-decoration: none;
+      margin-left: 12px;
+    }
+
+    .top-bar button {
+      background: none;
+      border: 1px solid #30363D;
+      color: #8B949E;
+      border-radius: 6px;
+      padding: 5px 10px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      margin-left: 12px;
+    }
+
+    /* PAGES */
+    #userListPage,
+    #chatPage {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    #chatPage { display: none; }
+
+    /* USER LIST */
+    #userList {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .user-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border-bottom: 1px solid #30363D;
+      cursor: pointer;
+    }
+
+    .user-item:active { background: #1C2333; }
+
+    .avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #00D4FF, #0077ff);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 0.85rem;
+      color: #000;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      border: 2px solid #0D1117;
+      position: absolute;
+      bottom: 0;
+      right: 0;
+    }
+
+    .dot.online  { background: #00dd66; }
+    .dot.offline { background: #8B949E; }
+
+    .user-name { font-size: 0.9rem; font-weight: 600; }
+    .user-status { font-size: 0.75rem; color: #8B949E; margin-top: 2px; }
+
+    .unread {
+      background: #00D4FF;
+      color: #000;
+      font-size: 0.65rem;
+      font-weight: 700;
+      border-radius: 999px;
+      padding: 2px 7px;
+      margin-left: auto;
+    }
+
+    /* CHAT HEADER */
+    .chat-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 16px;
+      border-bottom: 1px solid #30363D;
+      background: #0D1117;
+      flex-shrink: 0;
+    }
+
+    .back-btn {
+      background: none;
+      border: none;
+      color: #00D4FF;
+      font-size: 1.3rem;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .chat-title { font-weight: 700; font-size: 0.95rem; }
+
+    /* MESSAGES */
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 0;
+    }
+
+    .msg-row {
+      display: flex;
+      flex-direction: column;
+      max-width: 75%;
+    }
+
+    .msg-row.mine   { align-self: flex-end; align-items: flex-end; }
+    .msg-row.theirs { align-self: flex-start; align-items: flex-start; }
+
+    .bubble {
+      padding: 10px 14px;
+      border-radius: 18px;
+      font-size: 0.85rem;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+
+    .mine   .bubble { background: #00D4FF; color: #000; border-bottom-right-radius: 4px; }
+    .theirs .bubble { background: #1C2333; color: #fff; border-bottom-left-radius: 4px; }
+
+    .msg-time { font-size: 0.62rem; color: #8B949E; margin-top: 3px; padding: 0 4px; }
+
+    .msg-img {
+      max-width: 200px;
+      max-height: 200px;
+      border-radius: 12px;
+      cursor: pointer;
+      object-fit: cover;
+      display: block;
+    }
+
+    .msg-video {
+      max-width: 220px;
+      border-radius: 12px;
+    }
+
+    .msg-actions {
+      display: none;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .msg-actions button {
+      background: #1C2333;
+      border: 1px solid #30363D;
+      color: #fff;
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 0.72rem;
+      cursor: pointer;
+    }
+
+    /* INPUT */
+    .input-area {
+      flex-shrink: 0;
+      border-top: 1px solid #30363D;
+      background: #0D1117;
+    }
+
+    .preview-bar {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      background: #1C2333;
+      font-size: 0.78rem;
+      color: #8B949E;
+    }
+
+    .preview-bar.show { display: flex; }
+
+    .preview-bar button {
+      background: none;
+      border: none;
+      color: #ff6666;
+      cursor: pointer;
+      font-size: 0.78rem;
+      margin-left: auto;
+    }
+
+    .input-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+    }
+
+    .attach {
+      width: 38px;
+      height: 38px;
+      background: #1C2333;
+      border: 1px solid #30363D;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+
+    #msgInput {
+      flex: 1;
+      background: #1C2333;
+      border: 1px solid #30363D;
+      border-radius: 999px;
+      padding: 10px 14px;
+      color: #fff;
+      font-size: 0.85rem;
+      outline: none;
+    }
+
+    #msgInput:focus { border-color: #00D4FF; }
+
+    .send {
+      width: 38px;
+      height: 38px;
+      background: #00D4FF;
+      border: none;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    #fileInput { display: none; }
+
+    /* Fix keyboard pushing layout on mobile */
+    @supports (height: 100dvh) {
+      body { height: 100dvh; }
+    }
+
+    /* REACTIONS */
+    .reactions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 4px;
+    }
+
+    .reaction-btn {
+      background: #1C2333;
+      border: 1px solid #30363D;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      color: #fff;
+    }
+
+    .reaction-btn.mine {
+      background: #003a4a;
+      border-color: #00D4FF;
+    }
+
+    /* EMOJI PICKER */
+    .emoji-picker {
+      display: none;
+      position: fixed;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1C2333;
+      border: 1px solid #30363D;
+      border-radius: 12px;
+      padding: 10px;
+      z-index: 999;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: center;
+      width: 220px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+
+    .emoji-picker.show { display: flex; }
+
+    .emoji-opt {
+      font-size: 1.4rem;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 6px;
+      transition: background 0.15s;
+    }
+
+    .emoji-opt:active { background: #30363D; }
+
+    .picker-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 998;
+    }
+
+    .picker-overlay.show { display: block; }
+  </style>
+</head>
+<body>
+
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <div class="logo">🌽 AnimeCorn</div>
+    <div>
+      <span id="welcomeMsg" style="color:#8B949E; font-size:0.8rem;"></span>
+      <a href="/index.html">❌ Return</a>
+      <button onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <!-- USER LIST PAGE -->
+  <div id="userListPage">
+    <div id="userList"></div>
+  </div>
+
+  <!-- CHAT PAGE -->
+  <div id="chatPage">
+    <div class="chat-header">
+      <button class="back-btn" onclick="goBack()">←</button>
+      <div class="avatar" id="chatAvatar" style="width:34px;height:34px;font-size:0.75rem;position:static;"></div>
+      <div class="chat-title" id="chatName"></div>
+    </div>
+
+    <div id="messages"></div>
+
+    <!-- EMOJI PICKER -->
+    <div class="picker-overlay" id="pickerOverlay" onclick="hideEmojiPicker()"></div>
+    <div class="emoji-picker" id="emojiPicker">
+      <span class="emoji-opt" onclick="react(currentReactIndex,'❤️')">❤️</span>
+      <span class="emoji-opt" onclick="react(currentReactIndex,'😂')">😂</span>
+      <span class="emoji-opt" onclick="react(currentReactIndex,'😮')">😮</span>
+      <span class="emoji-opt" onclick="react(currentReactIndex,'😢')">😢</span>
+      <span class="emoji-opt" onclick="react(currentReactIndex,'😡')">😡</span>
+      <span class="emoji-opt" onclick="react(currentReactIndex,'👍')">👍</span>
+      <span class="emoji-opt" onclick="react(currentReactIndex,'👎')">👎</span>
+      <span class="emoji-opt" onclick="react(currentReactIndex,'🔥')">🔥</span>
+      <span class="emoji-opt" onclick="react(currentReactIndex,'💯')">💯</span>
+    </div>
+
+    <div class="input-area">
+      <div class="preview-bar" id="previewBar">
+        <span id="previewName"></span>
+        <button onclick="cancelFile()">✕ Remove</button>
+      </div>
+      <div class="input-row">
+        <div class="attach" onclick="document.getElementById('fileInput').click()">📎</div>
+        <input type="file" id="fileInput" accept="image/*,video/*" onchange="previewFile()" />
+        <input type="text" id="msgInput" placeholder="Message..." onkeydown="if(event.key==='Enter') sendMessage()" />
+        <button class="send" onclick="sendMessage()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="#000"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22,2 15,22 11,13 2,9"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const themes = {
+        dark:       { bg:'#0D1117', card:'#1C2333', text:'#ffffff', border:'#30363D', muted:'#8B949E', accent:'#00D4FF' },
+        light:      { bg:'#f0f2f5', card:'#ffffff', text:'#1a1a1a', border:'#dcdfe4', muted:'#6b7280', accent:'#0077ff' },
+        neonred:    { bg:'#0D0508', card:'#1f0a10', text:'#ffe5e8', border:'#3D1018', muted:'#a87c82', accent:'#FF1744' },
+        neonpink:   { bg:'#0D0510', card:'#1f0a1a', text:'#ffe5f5', border:'#3D1030', muted:'#a87c9c', accent:'#FF2D9E' },
+        neongreen:  { bg:'#050D08', card:'#0a1f12', text:'#e5ffe9', border:'#103D1E', muted:'#7ca889', accent:'#00FF66' },
+        neonviolet: { bg:'#0A050D', card:'#160a1f', text:'#f0e5ff', border:'#2A103D', muted:'#947ca8', accent:'#B026FF' }
+      };
+      const name = localStorage.getItem('theme') || 'dark';
+      const t = themes[name];
+      document.documentElement.style.setProperty('--bg',     t.bg);
+      document.documentElement.style.setProperty('--card',   t.card);
+      document.documentElement.style.setProperty('--text',   t.text);
+      document.documentElement.style.setProperty('--border', t.border);
+      document.documentElement.style.setProperty('--muted',  t.muted);
+      document.documentElement.style.setProperty('--accent', t.accent);
+      document.body.style.background = t.bg;
+      document.body.style.color      = t.text;
+    })();
+    
+    const user = JSON.parse(sessionStorage.getItem('user') || 'null');
+    if (!user) window.location.href = '/login.html';
+    document.getElementById('welcomeMsg').textContent = user.username;
+
+    let currentChat  = null;
+    let pollInterval = null;
+
+    async function loadUsers() {
+      const res    = await fetch('/api/users');
+      const users  = await res.json();
+      const oRes   = await fetch('/api/online');
+      const online = await oRes.json();
+      const list   = document.getElementById('userList');
+      const others = users.filter(u => u.username !== user.username && u.role !== 'admin');
+
+      if (others.length === 0) {
+        list.innerHTML = '<p style="color:#8B949E;padding:16px;">No other users yet.</p>';
+        return;
+      }
+
+      list.innerHTML = '';
+      for (const u of others) {
+        const unread   = await getUnreadCount(u.username);
+        const isOnline = online.hasOwnProperty(u.username);
+        list.innerHTML += `
+          <div class="user-item" onclick="openChat('${u.username}')">
+            <div class="avatar">
+              ${u.username.slice(0,2).toUpperCase()}
+              <span class="dot ${isOnline ? 'online' : 'offline'}"></span>
+            </div>
+            <div>
+              <div class="user-name">${u.username}</div>
+              <div class="user-status">${isOnline ? '🟢 Online' : '⚫ Offline'}</div>
+            </div>
+            ${unread > 0 ? `<span class="unread">${unread}</span>` : ''}
+          </div>
+        `;
+      }
+    }
+
+    async function getUnreadCount(from) {
+      const res  = await fetch('/api/messages?user1=' + user.username + '&user2=' + from);
+      const msgs = await res.json();
+      return msgs.filter(m => m.to === user.username && !m.read).length;
+    }
+
+    async function pingOnline() {
+      await fetch('/api/ping', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: user.username })
+      });
+    }
+
+    pingOnline();
+    setInterval(pingOnline, 30000);
+
+    function openChat(username) {
+      currentChat = username;
+      document.getElementById('userListPage').style.display = 'none';
+      document.getElementById('chatPage').style.display     = 'flex';
+      document.getElementById('chatName').textContent       = username;
+      document.getElementById('chatAvatar').textContent     = username.slice(0,2).toUpperCase();
+      loadMessages();
+      if (pollInterval) clearInterval(pollInterval);
+      pollInterval = setInterval(loadMessages, 3000);
+    }
+
+    function goBack() {
+      currentChat = null;
+      clearInterval(pollInterval);
+      document.getElementById('chatPage').style.display     = 'none';
+      document.getElementById('userListPage').style.display = 'flex';
+      loadUsers();
+    }
+
+    async function loadMessages() {
+      const res  = await fetch('/api/messages?user1=' + user.username + '&user2=' + currentChat);
+      const msgs = await res.json();
+      const box  = document.getElementById('messages');
+      const wasAtBottom = box.scrollHeight - box.scrollTop <= box.clientHeight + 50;
+
+      const playingVideo = document.querySelector('.msg-video');
+      if (playingVideo && !playingVideo.paused) return;
+
+      box.innerHTML = '';
+      msgs.forEach(function(m, index) {
+        const mine = m.from === user.username;
+        let content = '';
+        if (m.type === 'image') {
+          content = '<img src="' + m.content + '" class="msg-img" onclick="openImage(' + index + ')" />';
+        } else if (m.type === 'video') {
+          content = '<video src="' + m.content + '" class="msg-video" controls onplay="pausePolling()" onpause="resumePolling()" onended="resumePolling()"></video>';
+        } else {
+          content = '<div class="bubble">' + m.content + '</div>';
+        }
+
+        // Build reactions
+        let reactionsHtml = '';
+        if (m.reactions && Object.keys(m.reactions).length > 0) {
+          reactionsHtml = '<div class="reactions">';
+          Object.keys(m.reactions).forEach(function(emoji) {
+            const count   = m.reactions[emoji].length;
+            const isMine  = m.reactions[emoji].includes(user.username);
+            reactionsHtml += '<button class="reaction-btn ' + (isMine ? 'mine' : '') + '" onclick="react(' + index + ',\'' + emoji + '\')">' + emoji + ' ' + count + '</button>';
+          });
+          reactionsHtml += '</div>';
+        }
+
+        const row = document.createElement('div');
+        row.className = 'msg-row ' + (mine ? 'mine' : 'theirs');
+        row.innerHTML = content + '<span class="msg-time">' + (m.edited ? m.time + ' · edited' : m.time) + '</span>' + reactionsHtml;
+
+        if (mine) {
+          const actions = document.createElement('div');
+          actions.className = 'msg-actions';
+          actions.id = 'actions-' + index;
+          if (m.type === 'text') {
+            const editBtn = document.createElement('button');
+            editBtn.textContent = '✏️ Edit';
+            editBtn.onclick = function() { editMsg(index, m.content); };
+            actions.appendChild(editBtn);
+          }
+          const delBtn = document.createElement('button');
+          delBtn.textContent = '🗑 Delete';
+          delBtn.onclick = function() { deleteMsg(index); };
+          actions.appendChild(delBtn);
+          row.appendChild(actions);
+          row.onclick = function() { toggleActions(index); };
+        }
+        
+        // Long press to react
+        let pressTimer = null;
+        row.addEventListener('touchstart', function() {
+          pressTimer = setTimeout(function() {
+            showEmojiPicker(index);
+          }, 500);
+        });
+        row.addEventListener('touchend', function() {
+          clearTimeout(pressTimer);
+        });
+        row.addEventListener('touchmove', function() {
+          clearTimeout(pressTimer);
+        });
+
+        box.appendChild(row);
+      });
+
+      if (wasAtBottom) box.scrollTop = box.scrollHeight;
+      await fetch('/api/markread', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ from: currentChat, to: user.username })
+      });
+    }
+
+    async function sendMessage() {
+      const input     = document.getElementById('msgInput');
+      const fileInput = document.getElementById('fileInput');
+      const text      = input.value.trim();
+      const file      = fileInput.files[0];
+      if (!text && !file) return;
+
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+          const type = file.type.startsWith('image') ? 'image' : 'video';
+          await fetch('/api/sendmessage', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ from: user.username, to: currentChat, content: e.target.result, type })
+          });
+          cancelFile();
+          loadMessages();
+        };
+        reader.readAsDataURL(file);
+      }
+
+      if (text) {
+        input.value = '';
+        await fetch('/api/sendmessage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ from: user.username, to: currentChat, content: text, type: 'text' })
+        });
+        loadMessages();
+      }
+    }
+
+    function previewFile() {
+      const file = document.getElementById('fileInput').files[0];
+      if (!file) return;
+      document.getElementById('previewName').textContent = '📎 ' + file.name;
+      document.getElementById('previewBar').classList.add('show');
+    }
+
+    function cancelFile() {
+      document.getElementById('fileInput').value = '';
+      document.getElementById('previewBar').classList.remove('show');
+    }
+
+    function toggleActions(index) {
+      const el = document.getElementById('actions-' + index);
+      if (!el) return;
+      el.style.display = el.style.display === 'flex' ? 'none' : 'flex';
+    }
+
+    async function deleteMsg(index) {
+      if (!confirm('Delete this message?')) return;
+      await fetch('/api/deletemessage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ index, user1: user.username, user2: currentChat })
+      });
+      loadMessages();
+    }
+
+    async function editMsg(index, oldText) {
+      const newText = prompt('Edit message:', oldText);
+      if (!newText || newText === oldText) return;
+      await fetch('/api/editmessage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ index, content: newText, user1: user.username, user2: currentChat })
+      });
+      loadMessages();
+    }
+
+    function openImage(index) {
+      const imgs = document.querySelectorAll('.msg-img');
+      const src  = imgs[index] ? imgs[index].src : null;
+      if (!src) return;
+      const win = window.open('');
+      win.document.write('<html><body style="margin:0;background:#000;display:flex;align-items:center;justify-content:center;min-height:100vh;"><img src="' + src + '" style="max-width:100%;max-height:100vh;" /></body></html>');
+    }
+
+    function pausePolling() {
+      if (pollInterval) { clearInterval(pollInterval); pollInterval = null; }
+    }
+
+    function resumePolling() {
+      if (!pollInterval) { pollInterval = setInterval(loadMessages, 3000); }
+    }
+
+    function logout() {
+      sessionStorage.removeItem('user');
+      window.location.href = '/login.html';
+    }
+
+    // Scroll input into view when keyboard opens
+    document.getElementById('msgInput').addEventListener('focus', function() {
+      setTimeout(function() {
+        document.getElementById('msgInput').scrollIntoView({ behavior: 'smooth', block: 'end' });
+      }, 300);
+    });
+
+    // Keep input in view when keyboard opens
+    window.visualViewport.addEventListener('resize', function() {
+      document.body.style.height = window.visualViewport.height + 'px';
+      const box = document.getElementById('messages');
+      box.scrollTop = box.scrollHeight;
+    });
+
+    let currentReactIndex = null;
+
+    function showEmojiPicker(index) {
+      currentReactIndex = index;
+      document.getElementById('emojiPicker').classList.add('show');
+      document.getElementById('pickerOverlay').classList.add('show');
+    }
+
+    function hideEmojiPicker() {
+      document.getElementById('emojiPicker').classList.remove('show');
+      document.getElementById('pickerOverlay').classList.remove('show');
+      currentReactIndex = null;
+    }
+
+    async function react(index, emoji) {
+      hideEmojiPicker();
+      await fetch('/api/addreaction', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          index,
+          emoji,
+          username: user.username,
+          user1: user.username,
+          user2: currentChat
+        })
+      });
+      loadMessages();
+    }
+
+    loadUsers();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Profile — VideoSite</title>
+  <link rel="stylesheet" href="/style.css" />
+  <style>
+    .profile-header {
+      background: #1C2333;
+      border-bottom: 1px solid #30363D;
+      padding: 24px 16px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .profile-avatar {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #00D4FF, #0077ff);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      flex-shrink: 0;
+    }
+
+    .profile-info { flex: 1; }
+
+    .profile-name {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .profile-role {
+      color: #00D4FF;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .profile-bio {
+      color: #8B949E;
+      font-size: 0.82rem;
+    }
+
+    .edit-btn {
+      background: #1C2333;
+      border: 1px solid #30363D;
+      color: #fff;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      width: auto;
+      margin-top: 10px;
+    }
+
+    .section {
+      padding: 16px;
+      border-bottom: 1px solid #30363D;
+    }
+
+    .section h2 {
+      font-size: 0.95rem;
+      margin-bottom: 14px;
+      color: #00D4FF;
+    }
+
+    .avatar-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .avatar-option {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #1C2333;
+      border: 2px solid #30363D;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      cursor: pointer;
+      transition: border-color 0.18s;
+    }
+
+    .avatar-option.selected {
+      border-color: #00D4FF;
+    }
+
+    .bio-input {
+      width: 100%;
+      background: #0D1117;
+      border: 1px solid #30363D;
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: #fff;
+      font-size: 0.85rem;
+      outline: none;
+      margin-bottom: 10px;
+      resize: none;
+      height: 80px;
+    }
+
+    .bio-input:focus { border-color: #00D4FF; }
+
+    .save-btn {
+      background: #00D4FF;
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .stars {
+      display: flex;
+      gap: 4px;
+      font-size: 1.1rem;
+    }
+
+    .star { cursor: default; }
+    .star.filled { color: #FFD700; }
+    .star.empty  { color: #30363D; }
+
+    .rated-card {
+      background: #1C2333;
+      border: 1px solid #30363D;
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+
+    .rated-title {
+      font-size: 0.88rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .rated-category {
+      font-size: 0.72rem;
+      color: #00D4FF;
+      margin-bottom: 6px;
+    }
+
+    .edit-section {
+      display: none;
+      padding: 16px;
+      border-bottom: 1px solid #30363D;
+    }
+
+    .edit-section.show { display: block; }
+
+    .success-msg {
+      background: #0a2a1a;
+      border: 1px solid #00aa44;
+      color: #00dd66;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.82rem;
+      margin-bottom: 14px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav>
+    <div class="logo">🌽 AnimeCorn</div>
+    <div class="nav-right">
+      <a href="/index.html" style="color:#00D4FF; font-size:0.82rem; text-decoration:none;">❌ Return</a>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+  </nav>
+
+  <!-- PROFILE HEADER -->
+  <div class="profile-header">
+    <div class="profile-avatar" id="profileAvatar"></div>
+    <div class="profile-info">
+      <div class="profile-name" id="profileName"></div>
+      <div class="profile-role" id="profileRole"></div>
+      <div class="profile-bio" id="profileBio"></div>
+      <button class="edit-btn" id="editProfileBtn" onclick="toggleEdit()">✏️ Edit Profile</button>
+    </div>
+  </div>
+
+  <!-- EDIT SECTION -->
+  <div class="edit-section" id="editSection">
+    <div id="saveSuccess" class="success-msg">✓ Profile updated!</div>
+    <h2 style="font-size:0.95rem; margin-bottom:12px; color:#00D4FF;">Choose Avatar</h2>
+    <div class="avatar-grid" id="avatarGrid"></div>
+    <h2 style="font-size:0.95rem; margin-bottom:8px; color:#00D4FF;">Bio</h2>
+    <textarea class="bio-input" id="bioInput" placeholder="Tell us about yourself..."></textarea>
+    <button class="save-btn" onclick="saveProfile()">Save Profile</button>
+  </div>
+
+  <!-- PERSONAL TOP RATED VIDEOS -->
+  <div class="section">
+    <h2 id="topRatedHeading">⭐ Top Rated Videos</h2>
+    <div id="topRated"></div>
+  </div>
+
+  <!-- MY RATINGS (ALL HIERARCHY) -->
+  <div class="section">
+    <h2 id="myRatingsHeading">🎬 All Rated Videos</h2>
+    <div id="myRatings"></div>
+  </div>
+
+  <script>
+    (function() {
+      const themes = {
+        dark:       { bg:'#0D1117', card:'#1C2333', text:'#ffffff', border:'#30363D', muted:'#8B949E', accent:'#00D4FF' },
+        light:      { bg:'#f0f2f5', card:'#ffffff', text:'#1a1a1a', border:'#dcdfe4', muted:'#6b7280', accent:'#0077ff' },
+        neonred:    { bg:'#0D0508', card:'#1f0a10', text:'#ffe5e8', border:'#3D1018', muted:'#a87c82', accent:'#FF1744' },
+        neonpink:   { bg:'#0D0510', card:'#1f0a1a', text:'#ffe5f5', border:'#3D1030', muted:'#a87c9c', accent:'#FF2D9E' },
+        neongreen:  { bg:'#050D08', card:'#0a1f12', text:'#e5ffe9', border:'#103D1E', muted:'#7ca889', accent:'#00FF66' },
+        neonviolet: { bg:'#0A050D', card:'#160a1f', text:'#f0e5ff', border:'#2A103D', muted:'#947ca8', accent:'#B026FF' }
+      };
+      const name = localStorage.getItem('theme') || 'dark';
+      const t = themes[name];
+      document.documentElement.style.setProperty('--bg',     t.bg);
+      document.documentElement.style.setProperty('--card',   t.card);
+      document.documentElement.style.setProperty('--text',   t.text);
+      document.documentElement.style.setProperty('--border', t.border);
+      document.documentElement.style.setProperty('--muted',  t.muted);
+      document.documentElement.style.setProperty('--accent', t.accent);
+      document.body.style.background = t.bg;
+      document.body.style.color      = t.text;
+    })();
+
+    // 1. Determine Identity Context (Am I viewing myself or someone else?)
+    const loggedInUser = JSON.parse(sessionStorage.getItem('user') || 'null');
+    if (!loggedInUser) window.location.href = '/login.html';
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetUsername = urlParams.get('username') || loggedInUser.username;
+    const isOwnProfile = (targetUsername === loggedInUser.username);
+
+    const avatars = ['😀','🎬','🎮','👑','🦁','🐯','🦊','🐺','🎵','🚀','⚡','🔥','💎','🌙','🌟','🎯'];
+    let selectedAvatar = loggedInUser.avatar || '😀';
+
+    // Update Headings Dynamically based on context
+    document.getElementById('topRatedHeading').textContent = isOwnProfile ? "⭐ My Top Rated Videos" : `⭐ ${targetUsername}'s Top Rated Videos`;
+    document.getElementById('myRatingsHeading').textContent = isOwnProfile ? "🎬 All My Rated Videos" : `🎬 All of ${targetUsername}'s Rated Videos`;
+    
+    // Hide edit button if looking at someone else's profile page
+    if (!isOwnProfile) {
+      document.getElementById('editProfileBtn').style.display = 'none';
+    }
+
+    // Anti-XSS Security Helper
+    function escapeHTML(str) {
+      if (!str) return '';
+      return str.replace(/[&<>'"]/g, 
+        tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+      );
+    }
+
+    async function renderProfile() {
+      const res   = await fetch('/api/users');
+      const users = await res.json();
+      const profileUser = users.find(u => u.username === targetUsername);
+
+      if (!profileUser) {
+        document.getElementById('profileName').textContent = "User Not Found";
+        return;
+      }
+
+      // Keep active session payload synchronized if editing own profile
+      if (isOwnProfile) {
+        loggedInUser.avatar = profileUser.avatar;
+        loggedInUser.bio    = profileUser.bio;
+        sessionStorage.setItem('user', JSON.stringify(loggedInUser));
+      }
+
+      document.getElementById('profileAvatar').textContent = profileUser.avatar || '😀';
+      document.getElementById('profileName').textContent   = profileUser.username;
+      document.getElementById('profileRole').textContent   = profileUser.role || 'User';
+      document.getElementById('profileBio').textContent    = profileUser.bio ? escapeHTML(profileUser.bio) : 'No bio yet.';
+      document.getElementById('bioInput').value            = profileUser.bio || '';
+    }
+
+    function renderAvatarGrid() {
+      const grid = document.getElementById('avatarGrid');
+      grid.innerHTML = '';
+      avatars.forEach(a => {
+        grid.innerHTML += `
+          <div class="avatar-option ${a === selectedAvatar ? 'selected' : ''}"
+               onclick="selectAvatar('${escapeHTML(a)}', this)">
+            ${escapeHTML(a)}
+          </div>
+        `;
+      });
+    }
+
+    function selectAvatar(avatar, el) {
+      selectedAvatar = avatar;
+      document.querySelectorAll('.avatar-option').forEach(o => o.classList.remove('selected'));
+      el.classList.add('selected');
+    }
+
+    function toggleEdit() {
+      const el = document.getElementById('editSection');
+      el.classList.toggle('show');
+      
+      if (el.classList.contains('show')) {
+        selectedAvatar = loggedInUser.avatar || '😀';
+        renderAvatarGrid();
+      }
+    }
+
+    async function saveProfile() {
+      if (!isOwnProfile) return;
+      const bio = document.getElementById('bioInput').value.trim();
+      const res = await fetch('/api/updateprofile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: loggedInUser.username, avatar: selectedAvatar, bio })
+      });
+      const data = await res.json();
+      if (data.success) {
+        loggedInUser.avatar = selectedAvatar;
+        loggedInUser.bio    = bio;
+        sessionStorage.setItem('user', JSON.stringify(loggedInUser));
+        renderProfile();
+        document.getElementById('saveSuccess').style.display = 'block';
+        setTimeout(() => {
+          document.getElementById('saveSuccess').style.display = 'none';
+          document.getElementById('editSection').classList.remove('show');
+        }, 1500);
+      }
+    }
+
+    function starsHtml(rating) {
+      let html = '<div class="stars">';
+      for (let i = 1; i <= 5; i++) {
+        html += `<span class="star ${i <= rating ? 'filled' : 'empty'}">★</span>`;
+      }
+      html += '</div>';
+      return html;
+    }
+
+    // MODIFIED: Calculates high-score rankings restricted exclusively to this user's dataset
+    async function loadTopRated() {
+      const res     = await fetch('/api/ratings');
+      const ratings = await res.json();
+      const vRes    = await fetch('/api/videos');
+      const videos  = await vRes.json();
+      const box     = document.getElementById('topRated');
+
+      // Filter global telemetry down to only the profile target's interactions
+      const targetRatings = ratings.filter(r => r.username === targetUsername);
+
+      if (targetRatings.length === 0) {
+        box.innerHTML = `<p style="color:#8B949E;">No high ratings registered yet.</p>`;
+        return;
+      }
+
+      // Map and match actual video metadata blocks to user score inputs 
+      const ranked = targetRatings
+        .map(r => {
+          const videoInfo = videos.find(v => v.url === r.videoUrl);
+          return {
+            ...videoInfo,
+            personalScore: r.rating
+          };
+        })
+        .filter(v => v.title) // Ensure structural safety if a video was purged from endpoints
+        .sort((a, b) => b.personalScore - a.personalScore) // Top scores rank highest
+        .slice(0, 3); // Grab the top 3 highest rated elements 
+
+      box.innerHTML = '';
+      ranked.forEach(v => {
+        box.innerHTML += `
+          <div class="rated-card" onclick="window.location.href='/index.html'">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <div class="rated-title">${escapeHTML(v.title)}</div>
+                <div class="rated-category">${escapeHTML(v.category || 'Uncategorized')}</div>
+              </div>
+              <div>
+                 ${starsHtml(v.personalScore)}
+              </div>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    async function loadMyRatings() {
+      const res     = await fetch('/api/ratings');
+      const ratings = await res.json();
+      const vRes    = await fetch('/api/videos');
+      const videos  = await vRes.json();
+      const box     = document.getElementById('myRatings');
+
+      const mine = ratings.filter(r => r.username === targetUsername);
+
+      if (mine.length === 0) {
+        box.innerHTML = `<p style="color:#8B949E;">No interactions found.</p>`;
+        return;
+      }
+
+      box.innerHTML = '';
+      let renderedCount = 0;
+
+      mine.forEach(r => {
+        const v = videos.find(v => v.url === r.videoUrl);
+        if (!v) return;
+        
+        renderedCount++;
+        box.innerHTML += `
+          <div class="rated-card">
+            <div class="rated-title">${escapeHTML(v.title)}</div>
+            <div class="rated-category">${escapeHTML(v.category || 'Uncategorized')}</div>
+            ${starsHtml(r.rating)}
+          </div>
+        `;
+      });
+
+      if (renderedCount === 0) {
+        box.innerHTML = `<p style="color:#8B949E;">No historical data compiled.</p>`;
+      }
+    }
+
+    function logout() {
+      sessionStorage.removeItem('user');
+      window.location.href = '/login.html';
+    }
+
+    renderProfile();
+    loadTopRated();
+    loadMyRatings();
+  </script>
+
+</body>
+</html>
+

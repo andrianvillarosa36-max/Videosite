@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Settings — VideoSite</title>
+  <link rel="stylesheet" href="/style.css" />
+  <style>
+    .settings-section {
+      margin: 16px;
+      background: #1C2333;
+      border: 1px solid #30363D;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .settings-title {
+      padding: 12px 16px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #00D4FF;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      border-bottom: 1px solid #30363D;
+    }
+
+    .settings-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      border-bottom: 1px solid #30363D;
+    }
+
+    .settings-item:last-child { border-bottom: none; }
+
+    .settings-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.88rem;
+    }
+
+    .settings-desc {
+      font-size: 0.72rem;
+      color: #8B949E;
+      margin-top: 2px;
+    }
+
+    /* TOGGLE SWITCH */
+    .toggle {
+      position: relative;
+      width: 46px;
+      height: 26px;
+      flex-shrink: 0;
+    }
+
+    .toggle input { display: none; }
+
+    .toggle-slider {
+      position: absolute;
+      inset: 0;
+      background: #30363D;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .toggle-slider::before {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: #fff;
+      border-radius: 50%;
+      top: 3px;
+      left: 3px;
+      transition: transform 0.2s;
+    }
+
+    .toggle input:checked + .toggle-slider { background: #00D4FF; }
+    .toggle input:checked + .toggle-slider::before { transform: translateX(20px); }
+
+    .theme-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      width: 100%;
+    }
+
+    .theme-option {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 10px;
+      border: 2px solid transparent;
+      transition: border-color 0.2s;
+    }
+
+    .theme-option.selected {
+      border-color: #00D4FF;
+    }
+
+    .theme-preview {
+      width: 60px;
+      height: 60px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .theme-option span {
+      font-size: 0.7rem;
+      color: #8B949E;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav>
+    <div class="logo">⚙️ Settings</div>
+    <div class="nav-right">
+      <a href="/index.html" style="color:#00D4FF; font-size:0.82rem; text-decoration:none;">❌ Return</a>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+  </nav>
+
+  <!-- APPEARANCE -->
+  <div class="settings-section">
+    <div class="settings-title">🎨 Theme</div>
+    <div class="settings-item" style="flex-direction:column; align-items:flex-start; gap:12px;">
+      <div class="theme-grid">
+        <div class="theme-option" data-theme="dark" onclick="selectTheme('dark')">
+          <div class="theme-preview" style="background:#0D1117; border:2px solid #30363D;"><div style="background:#00D4FF; width:20px; height:20px; border-radius:50%;"></div></div>
+          <span>🌙 Dark</span>
+        </div>
+        <div class="theme-option" data-theme="light" onclick="selectTheme('light')">
+          <div class="theme-preview" style="background:#f5f5f5; border:2px solid #ddd;"><div style="background:#0077ff; width:20px; height:20px; border-radius:50%;"></div></div>
+          <span>☀️ Light</span>
+        </div>
+        <div class="theme-option" data-theme="neonred" onclick="selectTheme('neonred')">
+          <div class="theme-preview" style="background:#0D0508; border:2px solid #3D1018;"><div style="background:#FF1744; width:20px; height:20px; border-radius:50%; box-shadow:0 0 10px #FF1744;"></div></div>
+          <span>🔴 Neon Red</span>
+        </div>
+        <div class="theme-option" data-theme="neonpink" onclick="selectTheme('neonpink')">
+          <div class="theme-preview" style="background:#0D0510; border:2px solid #3D1030;"><div style="background:#FF2D9E; width:20px; height:20px; border-radius:50%; box-shadow:0 0 10px #FF2D9E;"></div></div>
+          <span>🩷 Neon Pink</span>
+        </div>
+        <div class="theme-option" data-theme="neongreen" onclick="selectTheme('neongreen')">
+          <div class="theme-preview" style="background:#050D08; border:2px solid #103D1E;"><div style="background:#00FF66; width:20px; height:20px; border-radius:50%; box-shadow:0 0 10px #00FF66;"></div></div>
+          <span>🟢 Neon Green</span>
+        </div>
+        <div class="theme-option" data-theme="neonviolet" onclick="selectTheme('neonviolet')">
+          <div class="theme-preview" style="background:#0A050D; border:2px solid #2A103D;"><div style="background:#B026FF; width:20px; height:20px; border-radius:50%; box-shadow:0 0 10px #B026FF;"></div></div>
+          <span>🟣 Neon Violet</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const user = JSON.parse(sessionStorage.getItem('user') || 'null');
+    if (!user) window.location.href = '/login.html';
+
+    // Load saved theme
+    const themes = {
+      dark:       { bg:'#0D1117', card:'#1C2333', text:'#ffffff', border:'#30363D', muted:'#8B949E', accent:'#00D4FF' },
+      light:      { bg:'#f0f2f5', card:'#ffffff', text:'#1a1a1a', border:'#dcdfe4', muted:'#6b7280', accent:'#0077ff' },
+      neonred:    { bg:'#0D0508', card:'#1f0a10', text:'#ffe5e8', border:'#3D1018', muted:'#a87c82', accent:'#FF1744' },
+      neonpink:   { bg:'#0D0510', card:'#1f0a1a', text:'#ffe5f5', border:'#3D1030', muted:'#a87c9c', accent:'#FF2D9E' },
+      neongreen:  { bg:'#050D08', card:'#0a1f12', text:'#e5ffe9', border:'#103D1E', muted:'#7ca889', accent:'#00FF66' },
+      neonviolet: { bg:'#0A050D', card:'#160a1f', text:'#f0e5ff', border:'#2A103D', muted:'#947ca8', accent:'#B026FF' }
+    };
+
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    selectTheme(savedTheme, true);
+
+    function selectTheme(name, skipSave) {
+      const t = themes[name];
+      document.documentElement.style.setProperty('--bg',     t.bg);
+      document.documentElement.style.setProperty('--card',   t.card);
+      document.documentElement.style.setProperty('--text',   t.text);
+      document.documentElement.style.setProperty('--border', t.border);
+      document.documentElement.style.setProperty('--muted',  t.muted);
+      document.documentElement.style.setProperty('--accent', t.accent);
+      document.body.style.background = t.bg;
+      document.body.style.color      = t.text;
+
+      document.querySelectorAll('.theme-option').forEach(function(el) {
+        el.classList.toggle('selected', el.dataset.theme === name);
+      });
+
+      if (!skipSave) localStorage.setItem('theme', name);
+    }
+
+    function logout() {
+      sessionStorage.removeItem('user');
+      window.location.href = '/login.html';
+    }
+  </script>
+
+</body>
+</html>
